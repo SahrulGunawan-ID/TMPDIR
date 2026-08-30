@@ -1,4 +1,4 @@
-name: Build PHP Static (musl ARM64)
+name: Build PHP 8.3 Static ARM64
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Download musl toolchain (ARM64)
@@ -20,13 +20,20 @@ jobs:
           tar -xzf musl-toolchain.tgz
           echo "$PWD/aarch64-linux-musl-cross/bin" >> $GITHUB_PATH
 
-      - name: Install build deps
+      - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf bison re2c pkg-config \
-            libxml2-dev libsqlite3-dev libssl-dev zlib1g-dev
+            libxml2-dev libsqlite3-dev libssl-dev zlib1g-dev curl tar xz p7zip-full
+
+      - name: Download PHP source
+        run: |
+          curl -L https://www.php.net/distributions/php-8.3.11.tar.xz -o php.tar.xz
+          tar -xf php.tar.xz
+          mv php-8.3.11 php-src
 
       - name: Configure PHP static (ARM64)
+        working-directory: php-src
         run: |
           ./configure \
             --enable-static --disable-shared \
@@ -36,10 +43,27 @@ jobs:
             LDFLAGS="-static"
 
       - name: Build PHP
+        working-directory: php-src
         run: make -j$(nproc)
 
-      - name: Upload artifact
+      - name: Package build directory
+        run: |
+          tar -cvJf php-static-arm64.tar.xz php-src
+          7z a php-static-arm64.7z php-src
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: php-static-musl-arm64
-          path: sapi/cli/php
+          name: php-static-arm64-build
+          path: |
+            php-static-arm64.tar.xz
+            php-static-arm64.7z
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: php-static-arm64-v8.3.11
+          name: "PHP 8.3.11 Static ARM64 Build"
+          files: |
+            php-static-arm64.tar.xz
+            php-static-arm64.7z
