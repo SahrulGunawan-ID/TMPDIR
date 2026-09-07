@@ -1,0 +1,115 @@
+AR      drivers/gpu/drm/nouveau/built-in.a
+  AR      drivers/gpu/drm/built-in.a
+  AR      drivers/gpu/built-in.a
+  AR      drivers/built-in.a
+  AR      built-in.a
+  AR      vmlinux.a
+  LD      vmlinux.o
+  MODPOST vmlinux.symvers
+  CC      .vmlinux.export.o
+  UPD     include/generated/utsversion.h
+  CC      init/version-timestamp.o
+  KSYMS   .tmp_vmlinux0.kallsyms.S
+  AS      .tmp_vmlinux0.kallsyms.o
+  LD      .tmp_vmlinux1
+  NM      .tmp_vmlinux1.syms
+  KSYMS   .tmp_vmlinux1.kallsyms.S
+  AS      .tmp_vmlinux1.kallsyms.o
+  LD      .tmp_vmlinux2
+  NM      .tmp_vmlinux2.syms
+  KSYMS   .tmp_vmlinux2.kallsyms.S
+  AS      .tmp_vmlinux2.kallsyms.o
+  LD      vmlinux.unstripped
+  NM      System.map
+  SORTTAB vmlinux.unstripped
+  OBJCOPY vmlinux
+  GEN     modules.builtin.modinfo
+  GEN     modules.builtin
+  OBJCOPY arch/arm64/boot/Image
+root@localhost~#
+root@localhost~# du -sh vmlinux*
+866.3M  vmlinux
+2.6M    vmlinux.a
+1.6G    vmlinux.o
+1.1M    vmlinux.symvers
+869.6M  vmlinux.unstripped
+root@localhost~# du -sh arch/arm64/boot/Image
+78.4M   arch/arm64/boot/Image
+root@localhost~# du -sh System.map
+15.9M   System.map
+root@localhost~# grep "^[0-9a-f]" System.map | wc -l
+381906
+root@localhost~# env
+SHELL=/bin/bash
+ld=ld.lld
+PWD=/root/linux-6.19.8
+HOSTCC=clang
+HOME=/root
+LANG=C.UTF-8
+LLVM=1
+HOSTLD=ld.lld
+LD=ld.lld
+cc=clang
+TERM=xterm-256color
+AR=llvm-ar
+ARCH=arm64
+SHLVL=1
+NM=llvm-nm
+OBJCOPY=llvm-objcopy
+STRIP=llvm-strip
+FORCE_UNSAFE_CONFIGURE=1
+OBJDUMP=llvm-objdump
+PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
+CC=clang
+_=/usr/bin/env
+OLDPWD=/root
+root@localhost~# ls
+COPYING                  crypto                   samples
+CREDITS                  drivers                  scripts
+Documentation            fs                       security
+Kbuild                   include                  sound
+Kconfig                  init                     tools
+LICENSES                 io_uring                 usr
+MAINTAINERS              ipc                      virt
+Makefile                 kernel                   vmlinux
+README                   lib                      vmlinux.a
+System.map               mm                       vmlinux.o
+arch                     modules.builtin          vmlinux.symvers
+block                    modules.builtin.modinfo  vmlinux.unstripped
+built-in.a               net
+certs                    rust
+root@localhost~# du -sh
+8.2G    .
+root@localhost~# find . -name "*.o" | wc -l
+8270
+root@localhost~# cd
+root@localhost~# nano .bashrc
+root@localhost~# l
+linux-6.19.8/        linux-6.19.8.tar.xz
+root@localhost~# ls
+linux-6.19.8         linux-6.19.8.tar.xz
+root@localhost~# cd linux-6.19.8
+root@localhost~# ls
+COPYING                  ipc
+CREDITS                  kernel
+Documentation            lib
+Kbuild                   mm
+Kconfig                  modules.builtin
+LICENSES                 modules.builtin.modinfo
+MAINTAINERS              net
+Makefile                 rust
+README                   samples
+System.map               scripts
+arch                     security
+block                    sound
+built-in.a               tools
+certs                    usr
+crypto                   virt
+drivers                  vmlinux
+fs                       vmlinux.a
+include                  vmlinux.o
+init                     vmlinux.symvers
+io_uring                 vmlinux.unstripped
+root@localhost~# grep -n "=m" .config
+9183:CONFIG_CRYPTO_BENCHMARK=m
+root@localhost~#
