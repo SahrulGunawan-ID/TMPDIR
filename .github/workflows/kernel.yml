@@ -1,0 +1,81 @@
+name: Kernel Build ARM64
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write   # supaya bisa push ke release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget xz-utils build-essential bc libssl-dev \
+            libncurses-dev bison flex dwarves gcc-aarch64-linux-gnu \
+            binutils-aarch64-linux-gnu p7zip-full
+
+      - name: Download Linux kernel
+        run: |
+          wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.8.tar.xz
+          tar -xf linux-6.6.8.tar.xz
+          mv linux-6.6.8 linux
+
+      - name: Configure kernel (allnoconfig)
+        run: |
+          cd linux
+          ./scripts/config --enable
+          make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+
+      - name: Build kernel Image
+        run: |
+          cd linux
+          make -j4 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image
+
+      - name: Collect kernel image
+        run: |
+          cd linux
+          cp arch/arm64/boot/Image ../Image-arm64
+
+      - name: Compress kernel image (7z)
+        run: |
+          7z a -mx9 kernel-arm64.7z Image-arm64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-arm64
+          path: kernel-arm64.7z
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-arm64
+          path: .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v6.6.8-arm64-${{ github.run_number }}
+          name: "Linux Kernel 6.6.8 ARM64 Image"
+          body: "Automated build of Linux 6.6.8 ARM64 (Image only, compressed 7z)."
+          draft: false
+          prerelease: false
+          files: kernel-arm64.7z
+          
